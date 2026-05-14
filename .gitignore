@@ -49,4 +49,4 @@ app.*.map.json
 
 
 # Api Keys
-lib/api_key.dart
+lib/aiConfig.dart
