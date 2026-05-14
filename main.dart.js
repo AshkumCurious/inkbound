@@ -82240,7 +82240,7 @@ l(){var s=this.d
 s===$&&A.a()
 s.l()
 this.a1A()},
-J(a){var s=null,r=t.p,q=A.MV(A.cr(A.ce(A.cx(A.c([A.bl(s,s,B.m,s,s,B.B4,s,6,s,s,s,s,s,6),B.cB,A.aw("WHAT IS INKBOUND",s,s,s,A.Hd(s),s,s)],r),B.z,B.V,B.t,0),s),s,A.aF(35e4,0)),-0.06,s,0),p=this.d
+J(a){var s=null,r=t.p,q=A.MV(A.cr(A.ce(A.cx(A.c([A.bl(s,s,B.m,s,s,B.B4,s,6,s,s,s,s,s,6),B.cB,A.aw("WELCOME TO",s,s,s,A.Hd(s),s,s)],r),B.z,B.V,B.t,0),s),s,A.aF(35e4,0)),-0.06,s,0),p=this.d
 p===$&&A.a()
 r=A.c([q,B.lv,A.kY(A.cr(A.ce(A.fW(p,new A.akT(this),s),s),A.aF(8e4,0),A.aF(6e5,0)),0.06,B.aH,s,0),B.e6,A.cr(A.ce(A.cx(A.c([new A.D4("INK","the story",B.bR,s),B.cB,A.aw("\xd7",s,s,s,A.bV(s,s,A.U(51,B.f.m()>>>16&255,B.f.m()>>>8&255,B.f.m()&255),s,s,s,s,s,s,s,s,13,s,s,s,s,s,!0,s,s,s,s,s,s,s,s),s,s),B.cB,new A.D4("BOUND","your path",B.ab,s)],r),B.z,B.V,B.t,0),s),A.aF(18e4,0),A.aF(4e5,0)),B.zE,A.kY(A.cr(A.ce(new A.S4(B.ez,s),s),A.aF(26e4,0),A.aF(5e5,0)),0.05,B.aH,s,0),B.zD],r)
 p=A.aHZ(A.c([B.OD,B.OC,B.OE],t.D0),0,t.n1)
