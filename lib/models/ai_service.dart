@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+
 import 'package:inkbound/aiConfig.dart';
 import '../models/story_theme.dart';
 import '../models/story_state.dart';
@@ -8,193 +9,204 @@ import 'quiz_question.dart';
 class ClaudeService {
   static const String _baseUrl = AiConfig.baseUrl;
   static const String _apiKey = AiConfig.apikey;
+  static const String _model = AiConfig.model;
 
-  // ==================== Generate Story Segment ====================
+  // ==================== GENERATE STORY ====================
   static Future<StorySegment> generateStory({
     required StoryTheme theme,
     required String prompt,
     required List<StorySegment> history,
   }) async {
-    final messages = _buildMessages(theme, prompt, history);
-
-    final response = await http.post(
-      Uri.parse(_baseUrl),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $_apiKey',
-      },
-      body: jsonEncode({
-        'model': AiConfig.model,
-        'max_tokens': 600,
-        'temperature': 0.85,
-        'messages': [
-          {'role': 'system', 'content': theme.systemPrompt},
-          ...messages,
-        ],
-      }),
+    final fullPrompt = _buildStoryPrompt(
+      theme: theme,
+      prompt: prompt,
+      history: history,
     );
 
-    if (response.statusCode != 200) {
-      throw Exception('API error ${response.statusCode}: ${response.body}');
-    }
+    final raw = await _generateText(
+      prompt: fullPrompt,
+      temperature: 0.85,
+      maxTokens: 600,
+    );
 
-    final data = jsonDecode(response.body);
-    final rawText = data['choices'][0]['message']['content'] as String;
-    return _parseSegment(rawText);
+    return _parseSegment(raw);
   }
 
-  // ==================== NEW: Generate Quiz ====================
+  // ==================== GENERATE QUIZ ====================
   static Future<List<QuizQuestion>> generateQuiz({
     required StoryTheme theme,
     required List<StorySegment> storyHistory,
   }) async {
-    final fullStory = storyHistory.map((s) => s.text).join("\n\n");
+    final storyText = storyHistory.map((e) => e.text).join("\n\n");
 
-    const systemPrompt = '''
-You are an expert literature teacher. Create a short multiple choice quiz based on the story so far.
-Generate exactly 4 questions.
-Each question should have 4 options and only one correct answer.
-Focus on important events, character actions, motivations, and key details.
-''';
+    final prompt = '''
+Create 4 MCQ questions from the story.
 
-    final userPrompt = '''
-Story so far:
-$fullStory
+Rules:
+- 4 options each
+- 1 correct answer
+- Return ONLY JSON
 
-Create 4 good MCQ questions that test understanding of the story.
-Return the response strictly in the following JSON format:
+Story:
+$storyText
 
+Format:
 {
   "questions": [
     {
-      "question": "Question text here?",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "question": "",
+      "options": ["A", "B", "C", "D"],
       "correctIndex": 0,
-      "explanation": "Short explanation why this is correct"
+      "explanation": ""
     }
   ]
 }
 ''';
 
+    final raw = await _generateText(
+      prompt: prompt,
+      temperature: 0.7,
+      maxTokens: 800,
+    );
+
+    return _parseQuiz(raw);
+  }
+
+  // ==================== GEMINI CORE CALL ====================
+  static Future<String> _generateText({
+    required String prompt,
+    double temperature = 0.8,
+    int maxTokens = 600,
+  }) async {
+    // ✅ Correct Gemini endpoint
+    final url = Uri.parse(
+      '${_baseUrl}/$_model:generateContent',
+    ).replace(
+      queryParameters: {'key': _apiKey},
+    );
+
     final response = await http.post(
-      Uri.parse(_baseUrl),
+      url,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $_apiKey',
       },
       body: jsonEncode({
-        'model': AiConfig.model,
-        'max_tokens': 800,
-        'temperature': 0.7,
-        'messages': [
-          {'role': 'system', 'content': systemPrompt},
-          {'role': 'user', 'content': userPrompt},
+        "contents": [
+          {
+            "role": "user",
+            "parts": [
+              {"text": prompt}
+            ]
+          }
         ],
+        "generationConfig": {
+          "temperature": temperature,
+          "maxOutputTokens": maxTokens,
+        }
       }),
     );
 
+    // 🔥 Better debugging (IMPORTANT)
     if (response.statusCode != 200) {
-      throw Exception('Quiz API error: ${response.body}');
+      throw Exception(
+        'Gemini API Error ${response.statusCode}: ${response.body}',
+      );
     }
 
     final data = jsonDecode(response.body);
-    final content = data['choices'][0]['message']['content'] as String;
 
-    try {
-      final jsonStart = content.indexOf('{');
-      final jsonEnd = content.lastIndexOf('}') + 1;
-      final jsonString = content.substring(jsonStart, jsonEnd);
-      final parsed = jsonDecode(jsonString);
-
-      final List<dynamic> questionsList = parsed['questions'];
-
-      return questionsList
-          .map((q) => QuizQuestion(
-                question: q['question'],
-                options: List<String>.from(q['options']),
-                correctIndex: q['correctIndex'],
-                explanation: q['explanation'] ?? '',
-              ))
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to parse quiz JSON');
-    }
+    return data['candidates'][0]['content']['parts'][0]['text'];
   }
 
-  // ==================== Helper Methods ====================
-  static List<Map<String, String>> _buildMessages(
-    StoryTheme theme,
-    String prompt,
-    List<StorySegment> history,
-  ) {
-    final messages = <Map<String, String>>[];
+  // ==================== PROMPT BUILDER ====================
+  static String _buildStoryPrompt({
+    required StoryTheme theme,
+    required String prompt,
+    required List<StorySegment> history,
+  }) {
+    final buffer = StringBuffer();
+
+    buffer.writeln(theme.systemPrompt);
+    buffer.writeln("\nWrite an interactive story.\n");
 
     if (history.isEmpty) {
-      messages.add({
-        'role': 'user',
-        'content': 'Start a story with this premise: $prompt',
-      });
+      buffer.writeln("Start story with:");
+      buffer.writeln(prompt);
     } else {
-      messages.add({
-        'role': 'user',
-        'content':
-            'Start a story with this premise: ${history.first.text.split('\n').first}',
-      });
+      buffer.writeln("Continue story.\n");
 
-      for (int i = 0; i < history.length; i++) {
-        final seg = history[i];
-        messages.add({
-          'role': 'assistant',
-          'content': _segmentToText(seg),
-        });
-        if (seg.choiceMade != null && i < history.length - 1) {
-          messages.add({
-            'role': 'user',
-            'content': 'I choose: ${seg.choiceMade}',
-          });
+      for (final seg in history) {
+        buffer.writeln("STORY:");
+        buffer.writeln(seg.text);
+
+        if (seg.choices.isNotEmpty) {
+          buffer.writeln("\nCHOICES:");
+          for (int i = 0; i < seg.choices.length; i++) {
+            final label = String.fromCharCode(65 + i);
+            buffer.writeln("$label) ${seg.choices[i]}");
+          }
         }
-      }
 
-      if (history.last.choiceMade != null) {
-        messages.add({
-          'role': 'user',
-          'content': 'I choose: ${history.last.choiceMade}',
-        });
-      }
-    }
+        if (seg.choiceMade != null) {
+          buffer.writeln("\nUSER CHOSE: ${seg.choiceMade}");
+        }
 
-    return messages;
-  }
-
-  static String _segmentToText(StorySegment seg) {
-    final buffer = StringBuffer(seg.text);
-    if (seg.choices.isNotEmpty) {
-      buffer.writeln('\n');
-      for (int i = 0; i < seg.choices.length; i++) {
-        final label = String.fromCharCode(65 + i);
-        buffer.writeln('$label) ${seg.choices[i]}');
+        buffer.writeln("\n---\n");
       }
     }
+
+    buffer.writeln('''
+IMPORTANT:
+- Story first
+- Then 3–4 choices (A, B, C, D)
+- Keep it engaging
+''');
+
     return buffer.toString();
   }
 
+  // ==================== PARSE STORY ====================
   static StorySegment _parseSegment(String raw) {
     final lines = raw.trim().split('\n');
+
     final choices = <String>[];
-    final storyLines = <String>[];
+    final story = <String>[];
 
     for (final line in lines) {
-      final trimmed = line.trim();
-      if (RegExp(r'^[A-C]\)').hasMatch(trimmed)) {
-        choices.add(trimmed.substring(2).trim());
+      final t = line.trim();
+
+      if (RegExp(r'^[A-D]\)').hasMatch(t)) {
+        choices.add(t.substring(2).trim());
       } else {
-        storyLines.add(trimmed);
+        story.add(t);
       }
     }
 
-    final storyText = storyLines.where((l) => l.isNotEmpty).join('\n').trim();
-    return StorySegment(text: storyText, choices: choices);
+    return StorySegment(
+      text: story.join('\n').trim(),
+      choices: choices,
+    );
+  }
+
+  // ==================== PARSE QUIZ ====================
+  static List<QuizQuestion> _parseQuiz(String raw) {
+    try {
+      final start = raw.indexOf('{');
+      final end = raw.lastIndexOf('}') + 1;
+
+      final jsonStr = raw.substring(start, end);
+      final data = jsonDecode(jsonStr);
+
+      return (data['questions'] as List).map((q) {
+        return QuizQuestion(
+          question: q['question'],
+          options: List<String>.from(q['options']),
+          correctIndex: q['correctIndex'],
+          explanation: q['explanation'] ?? '',
+        );
+      }).toList();
+    } catch (e) {
+      throw Exception('Quiz parsing failed: $e\nRAW: $raw');
+    }
   }
 }
-
-

@@ -54,9 +54,10 @@
 - **Shared Preferences** (Vocabulary)
 - **flutter_animate**
 
-
-
-
+// fvm flutter run -d chrome  
+// fvm flutter build web --release 
+// peanut
+// 
 
 
 
