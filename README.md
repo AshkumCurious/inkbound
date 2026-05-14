@@ -57,7 +57,7 @@
 // fvm flutter run -d chrome  
 // fvm flutter build web --release 
 // peanut
-// 
+// git push origin --force gh-pages
 
 
 
