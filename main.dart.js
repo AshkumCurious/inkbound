@@ -24744,7 +24744,7 @@ case 1:return A.L(q,r)}})
 return A.M($async$Zs,r)},
 HU(a){var s=0,r=A.N(t.N),q,p,o,n,m
 var $async$HU=A.O(function(b,c){if(b===1)return A.K(c,r)
-for(;;)switch(s){case 0:p=A.fK("inkbound-api.ashish030899.workers.dev",0,null)
+for(;;)switch(s){case 0:p=A.fK("https://inkbound-api.ashish030899.workers.dev",0,null)
 o=t.N
 n=A.ap(["Content-Type","application/json"],o,o)
 s=3
