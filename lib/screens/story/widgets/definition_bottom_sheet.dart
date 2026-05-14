@@ -27,9 +27,13 @@ class DefinitionBottomSheetState extends State<DefinitionBottomSheet> {
 
   Future<void> _fetchDefinition() async {
     try {
+
+        final cleanWord = widget.word
+        .replaceAll(RegExp(r'[^\w\s]'), '')
+        .trim();
       final response = await http.get(
         Uri.parse(
-            'https://api.dictionaryapi.dev/api/v2/entries/en/${widget.word}'),
+            'https://api.dictionaryapi.dev/api/v2/entries/en/$cleanWord'),
       );
 
       if (response.statusCode == 200) {

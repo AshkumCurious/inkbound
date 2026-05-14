@@ -357,8 +357,8 @@ class _PageWelcomeState extends State<_PageWelcome>
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFF9B8FFF);
-    const ink = Color(0xFF38BDF8);     // "Ink" highlight colour
-    const bound = Color(0xFFA78BFA);   // "Bound" highlight colour
+    const ink = Color(0xFF38BDF8); // "Ink" highlight colour
+    const bound = Color(0xFFA78BFA); // "Bound" highlight colour
 
     return Container(
       decoration: const BoxDecoration(
@@ -374,23 +374,19 @@ class _PageWelcomeState extends State<_PageWelcome>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               // ── Eyebrow ────────────────────────────────────────────────
               Row(
                 children: [
                   Container(
-                    width: 6, height: 6,
+                    width: 6,
+                    height: 6,
                     decoration: const BoxDecoration(
                         shape: BoxShape.circle, color: accent),
                   ),
                   const SizedBox(width: 8),
-                  Text('WHAT IS INKBOUND',
-                      style: AppTextStyles.overline()),
+                  Text('WELCOME TO', style: AppTextStyles.overline()),
                 ],
-              )
-                  .animate()
-                  .fadeIn(duration: 350.ms)
-                  .slideX(begin: -0.06, end: 0),
+              ).animate().fadeIn(duration: 350.ms).slideX(begin: -0.06, end: 0),
 
               const SizedBox(height: 28),
 
@@ -424,9 +420,11 @@ class _PageWelcomeState extends State<_PageWelcome>
 
                     // separator dot
                     Padding(
-                      padding: const EdgeInsets.only(bottom: 12, left: 3, right: 3),
+                      padding:
+                          const EdgeInsets.only(bottom: 12, left: 3, right: 3),
                       child: Container(
-                        width: 8, height: 8,
+                        width: 8,
+                        height: 8,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white.withOpacity(0.2),
@@ -471,14 +469,11 @@ class _PageWelcomeState extends State<_PageWelcome>
                   const SizedBox(width: 8),
                   Text('×',
                       style: TextStyle(
-                          color: Colors.white.withOpacity(0.2),
-                          fontSize: 13)),
+                          color: Colors.white.withOpacity(0.2), fontSize: 13)),
                   const SizedBox(width: 8),
                   _EtymPill(label: 'BOUND', sub: 'your path', color: bound),
                 ],
-              )
-                  .animate()
-                  .fadeIn(delay: 180.ms, duration: 400.ms),
+              ).animate().fadeIn(delay: 180.ms, duration: 400.ms),
 
               const SizedBox(height: 32),
 
@@ -525,7 +520,6 @@ class _PageWelcomeState extends State<_PageWelcome>
                         duration: 420.ms)
                     .slideX(begin: -0.05, end: 0, curve: Curves.easeOut);
               }),
-
             ],
           ),
         ),
@@ -540,7 +534,8 @@ class _EtymPill extends StatelessWidget {
   final String label;
   final String sub;
   final Color color;
-  const _EtymPill({required this.label, required this.sub, required this.color});
+  const _EtymPill(
+      {required this.label, required this.sub, required this.color});
 
   @override
   Widget build(BuildContext context) {
