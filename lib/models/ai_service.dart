@@ -7,10 +7,6 @@ import '../models/story_state.dart';
 import 'quiz_question.dart';
 
 class ClaudeService {
-  static const String _baseUrl = AiConfig.baseUrl;
-  static const String _apiKey = AiConfig.apikey;
-  static const String _model = AiConfig.model;
-
   // ==================== GENERATE STORY ====================
   static Future<StorySegment> generateStory({
     required StoryTheme theme,
@@ -23,11 +19,7 @@ class ClaudeService {
       history: history,
     );
 
-    final raw = await _generateText(
-      prompt: fullPrompt,
-      temperature: 0.85,
-      maxTokens: 600,
-    );
+    final raw = await _generateText(prompt: fullPrompt);
 
     return _parseSegment(raw);
   }
@@ -63,27 +55,16 @@ Format:
 }
 ''';
 
-    final raw = await _generateText(
-      prompt: prompt,
-      temperature: 0.7,
-      maxTokens: 800,
-    );
+    final raw = await _generateText(prompt: prompt);
 
     return _parseQuiz(raw);
   }
 
-  // ==================== GEMINI CORE CALL ====================
+  // ==================== GEMINI VIA CLOUD FUNCTION ====================
   static Future<String> _generateText({
     required String prompt,
-    double temperature = 0.8,
-    int maxTokens = 600,
   }) async {
-    // ✅ Correct Gemini endpoint
-    final url = Uri.parse(
-      '${_baseUrl}/$_model:generateContent',
-    ).replace(
-      queryParameters: {'key': _apiKey},
-    );
+    final url = Uri.parse(AiConfig.baseUrl);
 
     final response = await http.post(
       url,
@@ -91,31 +72,17 @@ Format:
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
-        "contents": [
-          {
-            "role": "user",
-            "parts": [
-              {"text": prompt}
-            ]
-          }
-        ],
-        "generationConfig": {
-          "temperature": temperature,
-          "maxOutputTokens": maxTokens,
-        }
+        "prompt": prompt,
       }),
     );
 
-    // 🔥 Better debugging (IMPORTANT)
     if (response.statusCode != 200) {
-      throw Exception(
-        'Gemini API Error ${response.statusCode}: ${response.body}',
-      );
+      throw Exception('Worker Error ${response.statusCode}: ${response.body}');
     }
 
     final data = jsonDecode(response.body);
 
-    return data['candidates'][0]['content']['parts'][0]['text'];
+    return data['text'] ?? "No response";
   }
 
   // ==================== PROMPT BUILDER ====================
