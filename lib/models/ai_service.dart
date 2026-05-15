@@ -75,7 +75,8 @@ Format:
         "prompt": prompt,
       }),
     );
-
+    print(response.statusCode);
+    print(response.body);
     if (response.statusCode != 200) {
       throw Exception('Worker Error ${response.statusCode}: ${response.body}');
     }

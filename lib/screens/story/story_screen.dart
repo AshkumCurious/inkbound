@@ -611,6 +611,7 @@ class _StoryScreenState extends State<StoryScreen> {
                     ),
                     child: TextField(
                       controller: _customPromptController,
+                      onChanged: (_) => setState(() {}),
                       maxLength: 100,
                       maxLines: 3,
                       style: AppTextStyles.label(

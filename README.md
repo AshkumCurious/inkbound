@@ -64,7 +64,7 @@
 
 Demo:::::
 "Hi everyone,
-I want to tell you about something I built called Inkbound.
+The project I have built is called Inkbound.
 Imagine reading a story… but it’s not just a story you read.
 It’s a story that changes with every choice you make.
 A story where every single word can teach you something new.
@@ -102,3 +102,6 @@ Short Version (for quick intro):
 "Inkbound is an interactive story app where you don’t just read — you live the story.
 You make choices that change the plot, tap any word to learn its meaning, save it to your vocabulary, and even get fun quizzes to check how well you’re understanding the story.
 It’s made for people who want to enjoy great stories while quietly improving their English and vocabulary at the same time."
+
+
+// AIzaSyDlkLFOoKmeBmF1lWviyOEwcgaw_MZbn3k
